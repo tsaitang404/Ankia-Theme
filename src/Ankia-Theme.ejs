@@ -220,7 +220,7 @@
 
       <% if (note.getLabelValue("categoryName") === "友链") { %>
       <div class="fLinkContainer">
-        <% const fLnksDate = content.replace(/<\/?pre>/g, '').replace(/[\n\s]/g, "");const fLinks = JSON.parse(fLnksDate); 
+        <% const fLnksDate = content.replace(/<\/?(pre|code)>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/[\n\s]/g, "");const fLinks = JSON.parse(fLnksDate); 
                     
                 for (let key in fLinks) {%>
 
