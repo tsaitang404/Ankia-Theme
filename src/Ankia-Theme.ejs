@@ -657,7 +657,7 @@
         <hr>
         <div>
           <div>
-            <span>本站已稳定运行：<%= Math.ceil((new Date() - new Date(subRoot.note.getLabelValue("blogStartTime"))) / (24 * 60 * 60 * 1000)) %>天</span>
+            <span><%= subRoot.note.getLabelValue("blogRunText") || "本站已稳定运行" %>：<%= Math.ceil((new Date() - new Date(subRoot.note.getLabelValue("blogStartTime"))) / (24 * 60 * 60 * 1000)) %>天</span>
     </div>
     <!-- 开源不易，请勿注释以下内容 -->
     <span>Powered by <a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/zadam/trilium">Trilium</a><b> X </b><a target="_blank" rel="noopener external nofollow noreferrer" href="https://github.com/dvai/Ankia-Theme">Ankia</a></span>
