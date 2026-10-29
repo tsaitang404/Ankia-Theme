@@ -5,12 +5,12 @@
     Licensed Apache-2.0 © 东东
  -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <% 
         const bloggerName =  subRoot.note.getLabelValue("bloggerName") ;
         const siteName =  subRoot.note.getLabelValue("siteName") ;
         const siteDescription =  note.getLabelValue("summary") ;
-        const bloggerAvatar  = `api/images/${subRoot.note.getRelation("bloggerAvatar").value}/博主头像`
+        const bloggerAvatar = subRoot.note.getLabelValue("bloggerAvatarUrl") || `api/images/${subRoot.note.getRelation("bloggerAvatar").value}/博主头像`;
         var count = 0;
         
         function getDaysAgo(dateStr) {
@@ -40,9 +40,11 @@
   <meta name="format-detection" content="telephone=no">
   <meta name="theme-color" content="#5986D1">
   <meta name="description" content="<%= siteDescription %>">
+  <% if (/<pre[\s>]/i.test(content)) { %>
   <link href="api/notes/<%= note.getRelation("prismCSS").value %>/download" rel="stylesheet">
   <script type="module" src="api/notes/<%= note.getRelation("prismJS").value %>/download"></script>
-  <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/style.css" media="print" onload="this.media='all'">
+  <% } %>
+  <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/lxgwwenkaiscreen.css" media="print" onload="this.media='all'">
   <% if (note.hasRelation("shareFavicon")) { %>
   <link rel="shortcut icon" href="api/notes/<%= note.getRelation("shareFavicon").value %>/download">
   <% } else { %>
@@ -57,8 +59,46 @@
   <% if (note.isLabelTruthy('shareDisallowRobotIndexing')) { %>
   <meta name="robots" content="noindex,follow" />
   <% } %>
+  <!-- Blog card readability and resilient cover loading. -->
+  <style id="blog-card-improvements">
+    #childLinks .blogItemsMainContain { padding: 18px; }
+    #childLinks #blogItems:hover { transform: translateY(-2px); }
+    #childLinks #blogItemTitle { display: block; margin: 0; font-size: 1.08rem; line-height: 1.5; overflow-wrap: anywhere; border: 0; }
+    #childLinks #blogItemTitle::before { content: none; }
+    #childLinks .blogCardPreview { display: flex; gap: 16px; align-items: flex-start; margin-top: 8px; }
+    #childLinks #blogItemSummary { flex: 1; min-width: 0; margin: 0 !important; line-height: 1.75; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
+    #childLinks #blogItemSummaryImgContain { order: 2; flex: 0 0 144px; width: 144px !important; height: 96px !important; margin: 0; padding: 0; border: 0; float: none; border-radius: 6px; }
+    #childLinks #blogItemSummaryImgContain img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    #childLinks .blogMetadate { margin: 14px 0 0; gap: 4px 8px; justify-content: flex-start; }
+    #childLinks a:focus-visible { outline: 2px solid #5986d1; outline-offset: 3px; border-radius: 4px; }
+    @media (max-width: 600px) {
+      #childLinks .blogItemsMainContain { padding: 14px; }
+      #childLinks .blogCardPreview { gap: 12px; }
+      #childLinks #blogItemSummaryImgContain { flex-basis: 88px; width: 88px !important; height: 66px !important; }
+      #childLinks #blogItemTitle { font-size: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #childLinks #blogItems { transition: none; }
+      #childLinks #blogItems:hover { transform: none; }
+    }
+    .mobileArticleToc { display: none; }
+    #content .toc-anchor { scroll-margin-top: 100px; }
+    #content :not(pre) > code { overflow-wrap: anywhere; word-break: break-word; }
+    #content pre { max-width: 100%; overflow-x: auto; }
+    #contentHeader { height: auto; min-height: 1rem; flex-wrap: wrap; gap: 8px 12px; }
+    @media (max-width: 70em) {
+      .mobileArticleToc { display: block; margin: 18px 0; padding: 12px 16px; border: 1px solid #5986d140; border-radius: 8px; background: #ffffffb3; }
+      .mobileArticleToc summary { cursor: pointer; font-weight: 600; }
+      .mobileArticleToc nav { max-height: 45vh; overflow-y: auto; margin-top: 10px; }
+      .mobileArticleToc ol { margin: 0; padding-left: 1.5em; }
+      .mobileArticleToc a { display: block; padding: 7px 0; line-height: 1.5; overflow-wrap: anywhere; }
+      #contentHeader > div:last-child { margin-left: 0 !important; flex-wrap: wrap; gap: 8px; }
+    }
+  </style>
   <%- header %>
-  <script src="https://cdn.jsdelivr.net/npm/twikoo@1.6.44/dist/twikoo.all.min.js"></script>
+  <% if (subRoot.note.hasLabel("enableTwikoo") && (note.hasLabel("showComments") || !subRoot.note.hasLabel("disableLatestCommentPane"))) { %>
+  <script defer src="https://cdn.jsdelivr.net/npm/twikoo@1.6.44/dist/twikoo.all.min.js"></script>
+  <% } %>
 </head>
 
 <%
@@ -220,7 +260,7 @@
 
       <% if (note.getLabelValue("categoryName") === "友链") { %>
       <div class="fLinkContainer">
-        <% const fLnksDate = content.replace(/<\/?pre>/g, '').replace(/[\n\s]/g, "");const fLinks = JSON.parse(fLnksDate); 
+        <% const fLnksDate = content.replace(/<\/?(pre|code)>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/[\n\s]/g, "");const fLinks = JSON.parse(fLnksDate);
                     
                 for (let key in fLinks) {%>
 
@@ -322,6 +362,20 @@
         <% }) %>
       </div>
       <% } else{%>
+      <% if (headingMatches.length > 1) { %>
+      <details class="mobileArticleToc">
+        <summary>文章目录（<%= headingMatches.length %> 节）</summary>
+        <nav aria-label="文章目录">
+          <ol>
+            <% headingMatches.forEach((heading) => {
+              const headingText = slugify(heading[2]).replace(/(<([^>]+)>)/ig, '');
+            %>
+            <li><a href="#<%= headingText %>"><%= headingText %></a></li>
+            <% }) %>
+          </ol>
+        </nav>
+      </details>
+      <% } %>
       <div id="content" class="type-<%= note.type %><% if (note.type === 'text') { %> ck-content<% } %>">
         <%- content %>
       </div>
@@ -352,7 +406,7 @@
         <hr>
         <% } %>
         <% const childNotes = note.getLabelValue("categoryName")==="首页" ? note.getVisibleChildNotes().slice(0,15) :  note.getVisibleChildNotes();
-                    for (const childNote of childNotes) {
+                    for (const [cardIndex, childNote] of childNotes.entries()) {
                         const isExternalLink = childNote.hasLabel('shareExternalLink');
                         const linkHref = isExternalLink ? childNote.getLabelValue('shareExternalLink') : `./${childNote.shareId}`;
                         const target = isExternalLink ? `target="_blank" rel="noopener noreferrer"` : '';
@@ -364,12 +418,12 @@
                 <% if (childNote.hasLabel("blogPostTop")) { %>
                 <b class="blogPostTopStyle">📌置顶</b>
                 <% } %>
-                <b id="blogItemTitle"><%= childNote.title %></b>
+                <h2 id="blogItemTitle"><%= childNote.title %></h2>
               </div>
-              <div>
-                <% if (childNote.hasLabel("headerImage") && childNote.getLabelValue("headerImage")!=null) { %>
+              <div class="blogCardPreview">
+                <% if (childNote.hasLabel("headerImage") && childNote.getLabelValue("headerImage")) { %>
                 <div id="blogItemSummaryImgContain">
-                  <img src="<%= childNote.getLabelValue("headerImage") %>">
+                  <img src="<%= childNote.getLabelValue("headerImage") %>" alt="" width="144" height="96" loading="<%= cardIndex < 2 ? 'eager' : 'lazy' %>" decoding="async" onerror="this.parentElement.hidden=true;this.parentElement.style.display='none'">
                 </div>
 
                 <% } %>
@@ -392,6 +446,7 @@
                 </div>
               </a>
               <%})} %>
+              <% if (childNote.getLabelValue("category")) { %>
               <a href="./category_<%= childNote.getLabelValue("category") %>">
                 <div class="blogMetadateItems categoryBadge shakeStyle">
                   <svg xmlns="http://www.w3.org/2000/svg" width="0.8rem" height="0.8rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-folder">
@@ -401,6 +456,7 @@
                 </div>
               </a>
 
+              <% } %>
               <% if (childNote.hasLabel("date") && childNote.getLabelValue("date")!=null) { 
                             const postDate = childNote.getLabelValue("date");
                             %>
@@ -428,15 +484,18 @@
       <p>施工中...</p>
       <% } %>
 
-      <% if (subRoot.note.hasLabel("enableTwikoo")) { %>
-      <div style="display:<%= note.hasLabel("showComments")?"block":"none" %> !important">
+      <% if (subRoot.note.hasLabel("enableTwikoo") && note.hasLabel("showComments")) { %>
+      <div>
         <div id="tcomment"></div>
       </div>
       <script>
-        twikoo.init({
-          envId: "<%= subRoot.note.getLabelValue("envId") %>",
-          el: '#tcomment',
-        })
+        document.addEventListener("DOMContentLoaded", function() {
+          if (!window.twikoo) return;
+          twikoo.init({
+            envId: "<%= subRoot.note.getLabelValue("envId") %>",
+            el: '#tcomment',
+          });
+        }, { once: true });
       </script>
       <% } %>
       <div id="onTop" title="前往顶部">
@@ -520,7 +579,7 @@
     <div id="bloggerInfoCard" class="cardContainerStyle" style="<%=subRoot.note.hasLabel("swapInfoCard")?"left:10px":"right:10px"%>; display:<%=headingMatches.length > 1?"none":"block"  %>">
       <div id="bloggerInfo" class="bloggerInfoCardStyle">
         <a href="./about" title="关于博主">
-          <img src=<%= bloggerAvatar %> href="./about">
+          <img src="<%= bloggerAvatar %>" alt="<%= bloggerName %>的头像" width="96" height="96" decoding="async">
         </a>
         <div id="bloggerInfoName" class="bloggerInfoTitleStyle"><%= bloggerName%></div>
         <div id="motto" class="bloggerInfoContentStyle"><%= subRoot.note.getLabelValue("motto") %></div>
@@ -608,7 +667,7 @@
         </a>
         <% } %>
         <% if (subRoot.note.hasLabel("mailLink") && subRoot.note.getLabelValue("mailLink")!=null) { %>
-        <a class="platformStyle" target="_blank" rel="noopener" title="mail" href="mailto:Email:<%= subRoot.note.getLabelValue("mailLink") %>"><svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <a class="platformStyle" target="_blank" rel="noopener" title="mail" href="mailto:<%= subRoot.note.getLabelValue("mailLink") %>"><svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <title>邮件</title>
             <path d="M15.61 12c0 1.99-1.62 3.61-3.61 3.61-1.99 0-3.61-1.62-3.61-3.61 0-1.99 1.62-3.61 3.61-3.61 1.99 0 3.61 1.62 3.61 3.61M12 0C5.383 0 0 5.383 0 12s5.383 12 12 12c2.424 0 4.761-.722 6.76-2.087l.034-.024-1.617-1.879-.027.017A9.494 9.494 0 0 1 12 21.54c-5.26 0-9.54-4.28-9.54-9.54 0-5.26 4.28-9.54 9.54-9.54 5.26 0 9.54 4.28 9.54 9.54a9.63 9.63 0 0 1-.225 2.05c-.301 1.239-1.169 1.618-1.82 1.568-.654-.053-1.42-.52-1.426-1.661V12A6.076 6.076 0 0 0 12 5.93 6.076 6.076 0 0 0 5.93 12 6.076 6.076 0 0 0 12 18.07a6.02 6.02 0 0 0 4.3-1.792 3.9 3.9 0 0 0 3.32 1.805c.874 0 1.74-.292 2.437-.821.719-.547 1.256-1.336 1.553-2.285.047-.154.135-.504.135-.507l.002-.013c.175-.76.253-1.52.253-2.457 0-6.617-5.383-12-12-12" />
           </svg>
@@ -628,6 +687,11 @@
         <hr>
         <div id="latestComment" class="cardItemLinkStyle" style="font-size: 13px;">加载中...</div>
         <script>
+          document.addEventListener("DOMContentLoaded", function() {
+            if (!window.twikoo) {
+              document.querySelector('#latestComment').parentElement.hidden = true;
+              return;
+            }
           twikoo.getRecentComments({
             envId: "<%= subRoot.note.getLabelValue("envId") %>",
             urls: [],
@@ -636,6 +700,7 @@
           }).then(function(res) {
             var cardItemLinkStyle = document.querySelector('#latestComment');
             cardItemLinkStyle.innerText = "";
+            cardItemLinkStyle.parentElement.hidden = res.length === 0;
             res.forEach((comment) => {
               var link = document.createElement('a');
               link.href = comment.url;
@@ -645,7 +710,10 @@
               link.innerText = `${comment.nick}: ${content}`;
               cardItemLinkStyle.appendChild(link);
             });
-          })
+          }).catch(function() {
+            document.querySelector('#latestComment').parentElement.hidden = true;
+          });
+          }, { once: true });
         </script>
       </div>
       <%}%>

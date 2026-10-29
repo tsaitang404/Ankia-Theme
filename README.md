@@ -63,6 +63,12 @@ All configurations for the blog are stored as Trilium attributes. Modify the val
 
 Replace the "Blogger Avatar" image under "My Blog → Ankia-Theme → imgs" with your own avatar.
 
+For a smaller display image, optionally set `#bloggerAvatarUrl` on the blog root
+to an optimized public image URL or a small `data:image/webp;base64,...` URI.
+The original `~bloggerAvatar` relation remains the fallback when this label is
+absent. A 192×192 WebP is sufficient for the theme's 96px avatar on 2× displays.
+Keep large originals in Trilium rather than using them directly on every page.
+
 > Note: When replacing, please select "Upload new revision" and do not modify any titles or attributes. The same applies to other image configurations mentioned below.
 
 ### Changing Blog Logo
