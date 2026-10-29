@@ -38,13 +38,22 @@ def main():
     if text.count(site) != 1 or text.count(rewrite) != 1:
         raise ValueError("Unexpected site/rewrite configuration")
     marker = "    # BEGIN Ankia immutable static assets\n"
-    if marker in text:
-        raise ValueError("Static route already exists; review before updating")
+    end_marker = "    # END Ankia immutable static assets\n"
     snippet = Path(__file__).with_name("static-assets.caddy").read_text()
     block = marker + "".join("    " + line + "\n" for line in snippet.splitlines())
-    block += "    # END Ankia immutable static assets\n"
-    text = text.replace(site, site + block, 1)
-    text = text.replace(rewrite, rewrite + " /assets/ankia/*", 1)
+    block += end_marker
+    if marker in text or end_marker in text:
+        if text.count(marker) != 1 or text.count(end_marker) != 1:
+            raise ValueError("Malformed or duplicate managed static route")
+        start = text.index(marker)
+        end = text.index(end_marker)
+        if end < start:
+            raise ValueError("Malformed managed static route")
+        text = text[:start] + block + text[end + len(end_marker):]
+    else:
+        text = text.replace(site, site + block, 1)
+    if rewrite + " /assets/ankia/*" not in text:
+        text = text.replace(rewrite, rewrite + " /assets/ankia/*", 1)
     fd, name = tempfile.mkstemp(prefix=".ankia-static-", dir=config.parent)
     candidate = Path(name)
     try:

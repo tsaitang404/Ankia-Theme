@@ -92,6 +92,7 @@ The installer verifies asset checksums, refuses to replace different bytes at
 an immutable URL, installs only manifest files under `/var/www/ankia-assets`,
 and adds a public `/assets/ankia/*` file route excluded from `/share` rewrites.
 Only successful static responses receive a one-year immutable browser cache.
+CSS responses support gzip/zstd compression; WOFF2/WebP remain pre-compressed.
 Other routes retain their previous behavior. The complete Caddyfile is backed
 up before reload and restored if reload fails.
 

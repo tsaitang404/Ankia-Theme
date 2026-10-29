@@ -2,6 +2,7 @@
 handle /assets/ankia/* {
     uri strip_prefix /assets/ankia
     root * /var/www/ankia-assets
+    encode zstd gzip
     header {
         Cache-Control "public, max-age=31536000, immutable"
         match status 200
