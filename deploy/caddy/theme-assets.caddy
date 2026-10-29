@@ -1,0 +1,34 @@
+# Import inside the www.tsaitang.com site block (after /share rewrites is OK).
+# Only these public theme resources receive a five-minute browser cache.
+@ankia_public_css {
+    method GET HEAD
+    path /api/notes/itFLWd1kW7DL/download /share/api/notes/itFLWd1kW7DL/download
+    path /api/notes/WmiDHKbKl2gQ/download /share/api/notes/WmiDHKbKl2gQ/download
+    header !Authorization
+    header !Cookie
+}
+@ankia_public_js {
+    method GET HEAD
+    path /api/notes/EQr5SNuTlzEd/download /share/api/notes/EQr5SNuTlzEd/download
+    path /api/notes/UdmFE5Mtuazr/download /share/api/notes/UdmFE5Mtuazr/download
+    header !Authorization
+    header !Cookie
+}
+header @ankia_public_css {
+    Cache-Control "private, max-age=300"
+    -Pragma
+    -Expires
+    match {
+        status 200
+        header Content-Type text/css*
+    }
+}
+header @ankia_public_js {
+    Cache-Control "private, max-age=300"
+    -Pragma
+    -Expires
+    match {
+        status 200
+        header Content-Type *javascript*
+    }
+}

@@ -44,3 +44,34 @@ public sharing routes and use an explicit asset allowlist. Never cache all
 Trilium `/api/*` routes or authenticated responses. Mutable asset URLs need a
 short TTL or a tested versioning/invalidation mechanism, not an unconditional
 one-year immutable policy.
+
+### This blog's Caddy rule
+
+`deploy/caddy/theme-assets.caddy` allowlists the four public theme/Prism download
+IDs for this installation, including the `/share`-prefixed paths used by the
+proxy rewrite. Anonymous GET/HEAD responses with status 200 and CSS/JavaScript
+content types receive `Cache-Control: private, max-age=300`. Requests carrying
+Cookie or Authorization, other notes/APIs, HTML and error responses keep their
+existing policy. This enables browser caching, not a shared proxy cache.
+Theme edits may take up to five minutes to appear on a returning visitor's
+browser; use a forced reload to check an immediate deployment.
+
+After committing and pushing these files, stage the exact committed files on
+the Caddy host in the same directory. Validate without changing live config:
+
+```sh
+sudo python3 deploy/caddy/apply-theme-cache.py
+```
+
+Then apply that same version:
+
+```sh
+sudo python3 deploy/caddy/apply-theme-cache.py --apply
+```
+
+The script backs up the complete Caddyfile, preserves other sites and reloads
+Caddy. A failed reload restores the previous file and reloads it. It refuses
+to overwrite an existing managed block; inspect and review subsequent updates.
+The rule is site-specific: replace the host and asset IDs when deploying it
+elsewhere. Verify headers on CSS, JS, HTML and a non-allowlisted API route,
+plus authenticated requests, before declaring the rollout successful.
