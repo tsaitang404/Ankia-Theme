@@ -71,6 +71,36 @@ collapses the image box if that also fails. Poto's own successful original-image
 fallback continues to work. Remove the label to disable thumbnail requests;
 the original article `headerImage` values are never rewritten.
 
+### Same-origin font and background assets
+
+The optional blog-root attributes `fontStylesheetUrl` and
+`homepageBackgroundUrl` select optimized assets without changing the original
+Trilium relations. If absent, the existing font CDN and background relation
+continue to work. Background images decode asynchronously and use low fetch
+priority so they do not compete with foreground covers and stylesheets.
+
+The current release's URLs and checksums are in `deploy/static-assets.json`.
+After committing and pushing the release, stage the repository on the Caddy
+host. Validate first, then apply:
+
+```sh
+sudo python3 deploy/caddy/install-static-assets.py
+sudo python3 deploy/caddy/install-static-assets.py --apply
+```
+
+The installer verifies asset checksums, refuses to replace different bytes at
+an immutable URL, installs only manifest files under `/var/www/ankia-assets`,
+and adds a public `/assets/ankia/*` file route excluded from `/share` rewrites.
+Only successful static responses receive a one-year immutable browser cache.
+Other routes retain their previous behavior. The complete Caddyfile is backed
+up before reload and restored if reload fails.
+
+Verify the font CSS, a referenced WOFF2 and background URL before setting the
+two attributes to the manifest's URLs. This order prevents broken asset links.
+To roll back, remove the attribute overrides before restoring the Caddyfile.
+The font bytes are unchanged, including Unicode ranges and `font-display: swap`.
+The old background is preserved, while the WebP keeps its 2000×1000 dimensions.
+
 After committing and pushing these files, stage the exact committed files on
 the Caddy host in the same directory. Validate without changing live config:
 

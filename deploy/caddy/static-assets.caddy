@@ -1,0 +1,10 @@
+# This route must be excluded from the site's /share rewrite.
+handle /assets/ankia/* {
+    uri strip_prefix /assets/ankia
+    root * /var/www/ankia-assets
+    header {
+        Cache-Control "public, max-age=31536000, immutable"
+        match status 200
+    }
+    file_server
+}

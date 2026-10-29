@@ -11,6 +11,8 @@
         const siteName =  subRoot.note.getLabelValue("siteName") ;
         const siteDescription =  note.getLabelValue("summary") ;
         const bloggerAvatar = subRoot.note.getLabelValue("bloggerAvatarUrl") || `api/images/${subRoot.note.getRelation("bloggerAvatar").value}/博主头像`;
+        const fontStylesheetUrl = subRoot.note.getLabelValue("fontStylesheetUrl") || "https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/lxgwwenkaiscreen.css";
+        const homepageBackgroundUrl = subRoot.note.getLabelValue("homepageBackgroundUrl") || `api/images/${subRoot.note.getRelation("homepageBG").value}/主页背景`;
         var count = 0;
 
         function getCoverImageSources(rawUrl) {
@@ -61,7 +63,7 @@
   <link href="api/notes/<%= note.getRelation("prismCSS").value %>/download" rel="stylesheet">
   <script type="module" src="api/notes/<%= note.getRelation("prismJS").value %>/download"></script>
   <% } %>
-  <link rel="stylesheet" href="https://npm.elemecdn.com/lxgw-wenkai-screen-webfont/lxgwwenkaiscreen.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="<%= fontStylesheetUrl %>" media="print" onload="this.media='all'">
   <% if (note.hasRelation("shareFavicon")) { %>
   <link rel="shortcut icon" href="api/notes/<%= note.getRelation("shareFavicon").value %>/download">
   <% } else { %>
@@ -144,7 +146,7 @@
 
 <body data-note-id="<%= note.noteId %>" data-ancestor-note-id="<%= subRoot.note.getVisibleChildNotes()[5].noteId %>">
   <div id="mobileMenuContainer"></div>
-  <div id="globalBackground" style=""><img id="globalBackgroundImg" src="api/images/<%= subRoot.note.getRelation("homepageBG").value %>/主页背景" style="position: fixed;margin-left: auto;margin-right: auto;display: flex;-o-object-fit: cover;object-fit: cover;" width="auto" height="100%">
+  <div id="globalBackground" style=""><img id="globalBackgroundImg" src="<%= homepageBackgroundUrl %>" decoding="async" fetchpriority="low" alt="" style="position: fixed;margin-left: auto;margin-right: auto;display: flex;-o-object-fit: cover;object-fit: cover;" width="auto" height="100%">
     <div class="overlay"></div>
   </div>
   <div id="navigationBar" class="scroll-hide">
