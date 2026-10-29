@@ -12,6 +12,23 @@
         const siteDescription =  note.getLabelValue("summary") ;
         const bloggerAvatar = subRoot.note.getLabelValue("bloggerAvatarUrl") || `api/images/${subRoot.note.getRelation("bloggerAvatar").value}/博主头像`;
         var count = 0;
+
+        function getCoverImageSources(rawUrl) {
+          const original = String(rawUrl || "");
+          const origin = String(subRoot.note.getLabelValue("potoThumbnailOrigin") || "").replace(/\/+$/, "");
+          // Opt in only for raster files on the configured Poto origin.
+          // Existing queries/fragments must not be changed: Poto rejects extra parameters.
+          if (!/^https:\/\/[^/?#]+$/.test(origin) ||
+              !original.startsWith(origin + "/files/") ||
+              !/\.(png|jpe?g|webp|gif|avif)$/i.test(original) || /[?#]/.test(original)) {
+            return { original, src: original, srcset: "" };
+          }
+          return {
+            original,
+            src: original + "?w=160",
+            srcset: [160, 320, 640].map(width => original + "?w=" + width + " " + width + "w").join(", ")
+          };
+        }
         
         function getDaysAgo(dateStr) {
           const date = new Date(dateStr);
@@ -422,8 +439,9 @@
               </div>
               <div class="blogCardPreview">
                 <% if (childNote.hasLabel("headerImage") && childNote.getLabelValue("headerImage")) { %>
+                <% const cover = getCoverImageSources(childNote.getLabelValue("headerImage")); %>
                 <div id="blogItemSummaryImgContain">
-                  <img src="<%= childNote.getLabelValue("headerImage") %>" alt="" width="144" height="96" loading="<%= cardIndex < 2 ? 'eager' : 'lazy' %>" decoding="async" onerror="this.parentElement.hidden=true;this.parentElement.style.display='none'">
+                  <img src="<%= cover.src %>" <% if (cover.srcset) { %>srcset="<%= cover.srcset %>" sizes="(max-width: 600px) 88px, 144px" data-original-src="<%= cover.original %>"<% } %> alt="" width="144" height="96" loading="<%= cardIndex < 2 ? 'eager' : 'lazy' %>" decoding="async" onerror="if(this.dataset.originalSrc){this.removeAttribute('srcset');this.removeAttribute('sizes');const original=this.dataset.originalSrc;delete this.dataset.originalSrc;this.src=original;}else{this.parentElement.hidden=true;this.parentElement.style.display='none';}">
                 </div>
 
                 <% } %>

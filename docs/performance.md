@@ -56,6 +56,21 @@ existing policy. This enables browser caching, not a shared proxy cache.
 Theme edits may take up to five minutes to appear on a returning visitor's
 browser; use a forced reload to check an immediate deployment.
 
+### Poto responsive covers
+
+After verifying the Poto `?w=160`, `?w=320` and `?w=640` endpoints, set
+`#potoThumbnailOrigin = https://poto.tsaitang.workers.dev` on the blog root.
+The theme then uses these variants for raster cover URLs under that exact
+origin's `/files/` path. `sizes` matches the CSS: 88px up to 600px viewport
+width, 144px otherwise. The browser chooses a variant for its pixel density.
+Existing lazy/eager loading and reserved layout dimensions remain in effect.
+
+Other origins, SVG files and URLs with existing query strings/fragments are
+left unchanged. A network/decode error retries the original cover once, then
+collapses the image box if that also fails. Poto's own successful original-image
+fallback continues to work. Remove the label to disable thumbnail requests;
+the original article `headerImage` values are never rewritten.
+
 After committing and pushing these files, stage the exact committed files on
 the Caddy host in the same directory. Validate without changing live config:
 
